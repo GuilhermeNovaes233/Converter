@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Converter.Controllers
 {
@@ -14,14 +15,27 @@ namespace Converter.Controllers
         private static readonly string _dataDir = "..\\..\\..\\Samples";
 
         [HttpGet]
-        public async System.Threading.Tasks.Task ConvertHTMLtoPDFAdvanced_WebPageAsync(string url)
+        public void ConvertHTMLtoPDF()
+        {
+            HtmlLoadOptions options = new HtmlLoadOptions();
+            
+            var docFileName = System.IO.Path.Combine(_dataDir, "exames.html");
+            Document pdfDocument = new Document(docFileName, options);
+            
+            var newDocFileName = System.IO.Path.Combine(_dataDir, "Exame.pdf");
+            pdfDocument.Save(newDocFileName);
+        }
+
+        [HttpGet("{url}")]
+        public async Task ConvertHTMLtoPDFAdvanced_WebPageAsync(string url)
         {
             // Set page size A3 and Landscape orientation;    
             HtmlLoadOptions options = new HtmlLoadOptions(url)
             {
                 PageInfo = { Width = 842, Height = 1191, IsLandscape = true }
             };
-            try {
+            try
+            {
                 Document pdfDocument = new Document(await GetContentFromUrlAsStreamAsync(url), options);
 
                 var docFileName = System.IO.Path.Combine(_dataDir, "html_test.pdf");
@@ -34,7 +48,7 @@ namespace Converter.Controllers
             }
         }
 
-        private static async System.Threading.Tasks.Task<Stream> GetContentFromUrlAsStreamAsync(string url, ICredentials credentials = null)
+        private static async Task<Stream> GetContentFromUrlAsStreamAsync(string url, ICredentials credentials = null)
         {
             var handler = new HttpClientHandler { Credentials = credentials };
 
@@ -42,7 +56,7 @@ namespace Converter.Controllers
 
             var response = await httpClient.GetAsync(url);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 return httpClient.GetStreamAsync(url).GetAwaiter().GetResult();
             }
